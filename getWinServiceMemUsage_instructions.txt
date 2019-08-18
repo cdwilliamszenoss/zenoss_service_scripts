@@ -1,0 +1,75 @@
+# getWinServiceMemUsage
+Get memory usage of any service. Require python.
+
+
+Instructions to add custom data source:
+
+1. Create a directory c:\WinServiceMemUsage. Copy the script to the directory.
+  - Edit the script. Modify the service of the service you will like to monitor.
+  - Set the memory threshold
+
+2. Identify the path to your python command. The default for ver 2.7 is c:\Python27\python.exe.
+
+3. In an administrator command prompt window, execute the script using the python interpreter. Type:
+   c:\Python27\python.exe c:\WinServiceMemUsage\getWinServiceMemUsage.py
+ 
+4. If you see an "Error" message. Follow the instructions to install the module.
+
+5. On success, you will see the output of the service memory output in a json format. 
+
+6. Log into Resource Manager server. Select the template to add the Data Source.
+
+IMPORTANT: Match Data Source name to monitored Service Name 
+
+7. Add a new Data Source by selecting the + button. Provide a name for the Data Source.  On "Type" drop-down
+   menu select "Windows Shell"
+
+8. Double-click the newly added Data Source. 
+   - Under "Windows Shell" select "Custom Command" from Strategy drop-down menu.  
+   - Select "JSON" from the Parser drop-down menu.
+   - Uncheck "Use Powershell"
+   - Enter the following command in the Script text-box.
+      c:\Python27\python.exe c:\WinServiceMemUsage\getWinServiceMemUsage.py
+   - Click save.
+
+IMPORTANT: Match Data Point name to monitored Service Name
+
+9. To add the Data Point. Click on the gear icon and select "Add Data Point"
+  - Provide a name for the Datapoint. 
+  
+10. Add a Graph. 
+   - Click + button under Graph Definition on the right side of the screen.
+   - Provide a name for the Graph
+   - Double-click the newly added Graph definition. Enter "bytes" in units field.  Select the check the box "Base 1024"
+
+
+11. Highlight the new name under Graph Definitions and click on gear icon.
+    - Select Manage Graph Points
+    - Slick the + and select "Data Point"
+    - Select the name of the data point from drop down menu.
+
+You will see graph data on the device overview page.
+
+------------------------------------------------------------------------------------------------------
+Single Instructions
+
+To graph the metrics returned for the data source will require you to create a data point. You can read more about data points at this link.
+https://www.zenoss.com/sites/default/files/zenoss-doc/8581/book/base/admin/monperf/data-points.html
+
+1. Log into Resource Manager server. Select the template and highlight the Replications Data Source.
+
+2. To add the Datapoint. Click on the gear icon and select "Add Data Point"
+   IMPORTANT: Set data point name to "Replications"
+  - Set the name for the Datapoint. 
+  
+Note: You can add the data point to an existing graph, or you can create a new graph.
+
+3. Add a Graph. 
+   - Click + button under Graph Definition on the right side of the screen.
+   - Provide a name for the Graph
+   - Highlight the new name under Graph Definitions and click on the gear icon.
+   - Select Manage Graph Points
+   - Click the + and select "Data Point"
+   - Select the name of the data point from the drop-down menu. Save settings.
+   - You will see graph data on the device overview page.
+
