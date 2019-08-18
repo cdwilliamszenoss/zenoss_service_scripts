@@ -1,0 +1,38 @@
+---------------------------
+Using Get-Counter
+---------------------------
+# List all disk counters:
+(get-counter -list physicaldisk).Pathswithinstances
+(get-counter -list logicaldisk).Pathswithinstances
+
+# Query disk-counters for single counter
+get-counter "\PhysicalDisk(0 C:)\Disk Bytes/sec"
+
+# Creating Loop
+ $disk = (get-counter -list physicaldisk).Pathswithinstances
+ foreach($counter in $disk)
+ {
+   Write-Output(get-counter $counter )
+ }
+
+# List counter sets
+Get-Counter -ListSet *
+
+# List couter set names
+Get-Counter -ListSet * | Sort-Object CounterSetName | Format-Table CounterSetName
+
+------------------------------
+Using Get-WmiObject
+-------------------------------
+
+# List all Classes
+Get-WmiObject -List *
+
+# List all Class names
+Get-WmiObject -List -Class * | Format-List Name
+
+# Query the object logical devices
+Get-WmiObject -Query "Select * from Win32_LogicalDisk"
+
+# Query the disk object
+Get-WmiObject -Query "Select * from Win32_DiskDrive"
