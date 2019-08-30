@@ -1,0 +1,117 @@
+# WinRM Setup
+
+Individual Machine use the Winrm instructions provided under the section: Individual Machine configuration
+https://www.zenoss.com/product/zenpacks/microsoft-windows#individual-machine-configuration
+
+Group Policy use the Winrm instructions provided under the section: Group Policy
+https://www.zenoss.com/product/zenpacks/microsoft-windows#group-policy
+
+
+Create user account, use a PowerShell prompt to query the server from any remote Windows Computer.
+
+```
+Query 1:
+
+wmic /USER:zmonitor2 /NODE:10.111.32.156 os get * /format:list
+
+----------------------------------------------
+Query 2:
+
+# Set $Computer and $Domain variables. Execute command on remote server
+
+$seed_class = @("Win32_LogicalDisk","Win32_DiskDrive","Win32_DiskDriveToDiskPartition","Win32_LogicalDiskToPartition","Win32_DiskPartition");
+$Computer = "10.111.32.223" ; $Domain = "contoso.local" ; $Credential = Get-Credential ;   Invoke-Command -ScriptBlock {  Write-Host "*********************"; foreach ($item in $seed_class) { Get-WmiObject -Authority "ntlmdomain:$Domain" -Locale "MS_409" -Namespace "root\cimv2"  -ComputerName $Computer -Credential $Credential -Query "Select * from $item";  Write-Host "---------------------" }; Write-Host "*********************"  }
+
+-----------------------------------------------
+
+```
+
+Create User account
+
+```
+Step 1
+# Create account.
+
+Step 2
+# Assign the following groups to account (use command - dsa):
+#    "Performance Monitor Users"
+#    "Performance Log Users"
+#    "Event Log Readers"
+#    "Distributed COM Users"
+#    "WinRMRemoteWMIUsers__"
+
+
+Step 3
+# Add account to folder and assign read permissions to user:
+# C:\Windows\system32\inetsrv\config
+
+Step 4
+# Assign user to namespaces ( use command - wmimgmt)
+# Right click on WMI Control -> select properties
+# Click Security tab - Select Root (Namespaces below)
+# Click Security and add Account
+# Select Account and check boxes for "Execute Methods", "Enable Account", "Remote Enable", "Read Security"
+# Repeat for list or to use inherited perms on all NameSpaces under Root  - Click on Advanced - select Account - Edit - Applies to: This namespace and subnamespaces
+
+"Root"
+"Root/CIMv2"
+"Root/DEFAULT"
+"Root/RSOP"
+"Root/RSOP/Computer"
+"Root/WMI"
+"Root/CIMv2/Security/MicrosoftTpm"
+"Root/Webadministration" - If IIS is installed
+
+Step 5
+# Allow user to access Component services (use command - dcomcnfg)
+
+# Expand Component Services -> Computers -> My computer
+# Right click My Computer -> Properties
+# Select COM Security tab
+# Under "Access Permissions" -> Select "Edit Default" and add the account. Check allow "Remote Access"
+# Uder "Launch and Activation Permissions" -> Select "Edit Default" and add the account.
+# Check boxes "Remote Launch", "Remote Activation"
+
+
+Step 6
+# Add user to registry and allow read permission (use command - regedit)
+# Use the keys under HKEY_LOCAL_MACHINE
+
+# "HKLM:\system\currentcontrolset\control\securepipeservers\winreg"
+# "HKLM:\SYSTEM\CurrentControlSet\control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}"
+# "HKLM:\System\CurrentControlSet\Services\eventlog\Security"
+# "HKLM:\SYSTEM\CurrentControlSet\Services\Blfp\Parameters\Adapters"
+
+# Windows Server 2012 R2
+#  Use if Blfp not present - HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Psched\Parameters\Adapters
+
+# "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib"
+# "HKLM:\Software\Wow6432Node\Microsoft\Microsoft SQL Server"
+# "HKLM:\Software\Microsoft\Microsoft SQL Server"
+
+
+Step 7
+# Assign permissions to all services
+#SERVICE_QUERY_CONFIG
+#SERVICE_QUERY_STATUS
+#SERVICE_INTERROGATE
+#READ_CONTROL
+#SERVICE_START
+
+$services = get-wmiobject -query "select * from win32_service" | sort-object name | select-object name
+
+foreach($item in $services) { C:\"Program Files (x86)\Windows Resource Kits\Tools"\subinacl.exe /service $item.name /grant=Zmonitor1 \tuser=SQLTI }
+
+
+Step 8
+# Make sure RemoteRegistry service is started and set to auto
+
+
+Step 9
+# Restart services.
+
+# restart-service RemoteRegistry -force
+# restart-service winmgmt -force
+# restart-service winrm -force
+
+```
