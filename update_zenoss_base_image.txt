@@ -1,4 +1,4 @@
-Instructions on Update Base Image
+Instructions on Updating Base Image
 
 Note:
   You can use use the ImageName and TAG or ImageID number
