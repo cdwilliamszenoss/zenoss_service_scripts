@@ -1,0 +1,43 @@
+Instructions on Update Base Image
+
+Note:
+  You can use use the ImageName and TAG or ImageID number
+
+- List resmgr docker images 
+ docker images | awk -F '-' '/resmgr/ {print $1,$2}' |sort -r -n -k 2
+
+- Examine the image layers for a selected image (look for images newest CREATED Timestamp):
+ docker history <imageID>
+
+- Create Backup of Base Image:
+ docker save -o resmgr_6.2.tar  50cae9ef82ea
+
+- Start the container and modify Base Image for resmgr_5.3. Install packages on image and save changes
+ docker run -it --name network_utils 50cae9ef82ea
+ yum install epel-release
+ yum install fping mtr
+ yum clean all
+ exit
+
+- Show  exited container to retrieve the containter ID and commit changes to layer
+ docker ps -f status="exited"
+ docker commit de88790aa5d0  zenoss/resmgr_6.2:network_utils
+
+- Save new image to tar file
+ docker save -o resmgr_6.2.network_utils.tar zenoss/resmgr_6.2:network_utils
+
+- If the serviced service is not running, start the service. 
+ systemctl start serviced
+
+- Override the current image
+ serviced docker override  zenoss/resmgr_6.2:latest zenoss/resmgr_6.2:network_utils
+
+- Asynchronously push all images from the serviced Docker registry index into the Docker registry:
+ serviced docker sync
+
+- Perform a staged shutdown of the Zenoss.
+
+- Stop serviced and docker services on all servers in the Zenoss infrastructure. 
+
+- Finally, start-up services and the utilities will be available in the containers that use the resmgr base image. 
+
